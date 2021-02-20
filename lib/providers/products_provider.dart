@@ -50,8 +50,15 @@ class ProductsProvider with ChangeNotifier {
     return _items.where((prodItem) => prodItem.isFavorite).toList();
   }
 
-  void addProduct() {
-    // _items.add(value);
+  void addProduct(ProductProvider product) {
+    final newProduct = ProductProvider(
+      title: product.title,
+      description: product.description,
+      imageUrl: product.imageUrl,
+      price: product.price,
+      id: DateTime.now().toString(),
+    );
+    _items.add(newProduct);
     notifyListeners();
   }
 }
