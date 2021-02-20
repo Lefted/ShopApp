@@ -25,10 +25,39 @@ class _EditProductScreenState extends State<EditProductScreen> {
     imageUrl: '',
   );
 
+  var isInit = true;
+  var _initValues = {
+    'title': '',
+    'description': '',
+    'price': '',
+    'imageUrl': '',
+  };
+
   @override
   void initState() {
     super.initState();
     _imageUrlFocusNode.addListener(_updateImageUrl);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (isInit) {
+      final productId = ModalRoute.of(context).settings.arguments as String;
+      if (productId != null) {
+        _editedProduct = Provider.of<ProductsProvider>(context, listen: false)
+            .findById(productId);
+        _initValues = {
+          'title': _editedProduct.title,
+          'price': _editedProduct.price.toString(),
+          'imageUrl': '',
+          'description': _editedProduct.description,
+        };
+        _imageUrlController.text = _editedProduct.imageUrl;
+      }
+
+      isInit = false;
+    }
   }
 
   void _updateImageUrl() {
@@ -54,8 +83,13 @@ class _EditProductScreenState extends State<EditProductScreen> {
     if (!isValid) return;
 
     _form.currentState.save();
-    Provider.of<ProductsProvider>(context, listen: false)
-        .addProduct(_editedProduct);
+    if (_editedProduct.id != null) {
+      Provider.of<ProductsProvider>(context, listen: false)
+          .updateProduct(_editedProduct.id, _editedProduct);
+    } else {
+      Provider.of<ProductsProvider>(context, listen: false)
+          .addProduct(_editedProduct);
+    }
     Navigator.of(context).pop();
   }
 
@@ -78,6 +112,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
           child: ListView(
             children: [
               TextFormField(
+                initialValue: _initValues['title'],
                 decoration: InputDecoration(labelText: 'Title'),
                 textInputAction: TextInputAction.next,
                 onFieldSubmitted: (_) {
@@ -86,6 +121,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
                 onSaved: (value) {
                   _editedProduct = ProductProvider(
                     id: _editedProduct.id,
+                    isFavorite: _editedProduct.isFavorite,
                     title: value,
                     price: _editedProduct.price,
                     description: _editedProduct.description,
@@ -98,6 +134,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
                 },
               ),
               TextFormField(
+                initialValue: _initValues['price'],
                 decoration: InputDecoration(labelText: 'Price'),
                 textInputAction: TextInputAction.next,
                 keyboardType: TextInputType.number,
@@ -112,6 +149,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
                     price: double.parse(value),
                     description: _editedProduct.description,
                     imageUrl: _editedProduct.imageUrl,
+                    isFavorite: _editedProduct.isFavorite,
                   );
                 },
                 validator: (value) {
@@ -124,6 +162,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
                 },
               ),
               TextFormField(
+                initialValue: _initValues['description'],
                 decoration: InputDecoration(labelText: 'Description'),
                 maxLines: 4,
                 keyboardType: TextInputType.multiline,
@@ -135,6 +174,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
                     price: _editedProduct.price,
                     description: value,
                     imageUrl: _editedProduct.imageUrl,
+                    isFavorite: _editedProduct.isFavorite,
                   );
                 },
                 validator: (value) {
@@ -184,6 +224,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
                           price: _editedProduct.price,
                           description: _editedProduct.description,
                           imageUrl: value,
+                          isFavorite: _editedProduct.isFavorite,
                         );
                       },
                       validator: (value) {
