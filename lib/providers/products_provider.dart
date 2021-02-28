@@ -52,10 +52,10 @@ class ProductsProvider with ChangeNotifier {
     return _items.where((prodItem) => prodItem.isFavorite).toList();
   }
 
-  void addProduct(ProductProvider product) {
+  Future<void> addProduct(ProductProvider product) {
     const url =
         'https://fluttercourse-shopapp-ea455-default-rtdb.europe-west1.firebasedatabase.app/products.json';
-    http
+    return http
         .post(
       url,
       body: json.encode({
