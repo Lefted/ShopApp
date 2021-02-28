@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
 import 'product_provider.dart';
 
@@ -51,15 +53,30 @@ class ProductsProvider with ChangeNotifier {
   }
 
   void addProduct(ProductProvider product) {
-    final newProduct = ProductProvider(
-      title: product.title,
-      description: product.description,
-      imageUrl: product.imageUrl,
-      price: product.price,
-      id: DateTime.now().toString(),
-    );
-    _items.add(newProduct);
-    notifyListeners();
+    const url =
+        'https://fluttercourse-shopapp-ea455-default-rtdb.europe-west1.firebasedatabase.app/products.json';
+    http
+        .post(
+      url,
+      body: json.encode({
+        'tilte': product.title,
+        'description': product.description,
+        'imageUrl': product.imageUrl,
+        'price': product.price,
+        'isFavorite': product.isFavorite,
+      }),
+    )
+        .then((response) {
+      final newProduct = ProductProvider(
+        title: product.title,
+        description: product.description,
+        imageUrl: product.imageUrl,
+        price: product.price,
+        id: json.decode(response.body)['name'],
+      );
+      _items.add(newProduct);
+      notifyListeners();
+    });
   }
 
   void updateProduct(String id, ProductProvider newProduct) {
