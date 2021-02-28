@@ -52,11 +52,10 @@ class ProductsProvider with ChangeNotifier {
     return _items.where((prodItem) => prodItem.isFavorite).toList();
   }
 
-  Future<void> addProduct(ProductProvider product) {
+  Future<void> addProduct(ProductProvider product) async {
     const url =
         'https://fluttercourse-shopapp-ea455-default-rtdb.europe-west1.firebasedatabase.app/products.json';
-    return http
-        .post(
+    final response = await http.post(
       url,
       body: json.encode({
         'tilte': product.title,
@@ -65,8 +64,9 @@ class ProductsProvider with ChangeNotifier {
         'price': product.price,
         'isFavorite': product.isFavorite,
       }),
-    )
-        .then((response) {
+    );
+
+    try {
       final newProduct = ProductProvider(
         title: product.title,
         description: product.description,
@@ -76,10 +76,10 @@ class ProductsProvider with ChangeNotifier {
       );
       _items.add(newProduct);
       notifyListeners();
-    }).catchError((error) {
+    } catch (error) {
       print(error);
       throw error;
-    });
+    }
   }
 
   void updateProduct(String id, ProductProvider newProduct) {
