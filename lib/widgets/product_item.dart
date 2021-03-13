@@ -10,6 +10,7 @@ class ProductItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final product = Provider.of<ProductProvider>(context, listen: false);
     final cart = Provider.of<CartProvider>(context, listen: false);
+    final scaffold = Scaffold.of(context);
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(10),
@@ -34,7 +35,17 @@ class ProductItem extends StatelessWidget {
               ),
             ),
             color: Theme.of(context).accentColor,
-            onPressed: product.toggleFavoriteStatus,
+            onPressed: () async {
+              try {
+                await product.toggleFavoriteStatus();
+              } catch (error) {
+                scaffold.showSnackBar(SnackBar(
+                    content: Text(
+                  'Updating Favorite Status failed!',
+                  textAlign: TextAlign.center,
+                )));
+              }
+            },
           ),
           backgroundColor: Colors.black87,
           title: Text(
