@@ -18,6 +18,7 @@ class ProductsOverviewScreen extends StatefulWidget {
 class _ProductsOverviewScreenState extends State<ProductsOverviewScreen> {
   var _showOnlyFavorites = false;
   var _isLoading = false;
+  var _loadingError = false;
 
   @override
   void initState() {
@@ -29,6 +30,10 @@ class _ProductsOverviewScreenState extends State<ProductsOverviewScreen> {
         .then((_) {
       setState(() {
         _isLoading = false;
+      });
+    }).catchError((error) {
+      setState(() {
+        _loadingError = true;
       });
     });
 
@@ -45,52 +50,60 @@ class _ProductsOverviewScreenState extends State<ProductsOverviewScreen> {
   //   super.didChangeDependencies();
   // }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      drawer: AppDrawer(),
-      appBar: AppBar(
-        title: Text('MyShop'),
-        actions: [
-          PopupMenuButton(
-            onSelected: (FilterOptions selectedValue) {
-              setState(() {
-                _showOnlyFavorites = selectedValue == FilterOptions.Favorites;
-              });
-            },
-            icon: Icon(
-              Icons.more_vert,
-            ),
-            itemBuilder: (_) => [
-              PopupMenuItem(
-                child: Text('Only Favorites'),
-                value: FilterOptions.Favorites,
-              ),
-              PopupMenuItem(
-                child: Text('Show All'),
-                value: FilterOptions.All,
-              ),
-            ],
-          ),
-          Consumer<CartProvider>(
-            builder: (_, cartData, ch) => Badge(
-              child: ch,
-              value: cartData.itemCount.toString(),
-            ),
-            child: IconButton(
-              icon: Icon(Icons.shopping_cart),
-              onPressed: () {
-                Navigator.of(context).pushNamed(CartScreen.routeName);
-              },
-            ),
-          )
-        ],
-      ),
-      body: _isLoading
+  Widget _buildBodyContent(BuildContext context) {
+    if (_loadingError) {
+      return Center(
+          child: Text('An error occured while trying to access the database.'));
+    } else {
+      return _isLoading
           ? Center(
               child: CircularProgressIndicator(),
             )
-          : ProductsGrid(_showOnlyFavorites),
-    );
+          : ProductsGrid(_showOnlyFavorites);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        drawer: AppDrawer(),
+        appBar: AppBar(
+          title: Text('MyShop'),
+          actions: [
+            PopupMenuButton(
+              onSelected: (FilterOptions selectedValue) {
+                setState(() {
+                  _showOnlyFavorites = selectedValue == FilterOptions.Favorites;
+                });
+              },
+              icon: Icon(
+                Icons.more_vert,
+              ),
+              itemBuilder: (_) => [
+                PopupMenuItem(
+                  child: Text('Only Favorites'),
+                  value: FilterOptions.Favorites,
+                ),
+                PopupMenuItem(
+                  child: Text('Show All'),
+                  value: FilterOptions.All,
+                ),
+              ],
+            ),
+            Consumer<CartProvider>(
+              builder: (_, cartData, ch) => Badge(
+                child: ch,
+                value: cartData.itemCount.toString(),
+              ),
+              child: IconButton(
+                icon: Icon(Icons.shopping_cart),
+                onPressed: () {
+                  Navigator.of(context).pushNamed(CartScreen.routeName);
+                },
+              ),
+            )
+          ],
+        ),
+        body: _buildBodyContent(context));
   }
 }
