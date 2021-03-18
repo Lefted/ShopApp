@@ -5,7 +5,12 @@ import 'package:http/http.dart' as http;
 
 import '../models/http_exception.dart';
 import 'product_provider.dart';
+
 class ProductsProvider with ChangeNotifier {
+  final String authToken;
+
+  ProductsProvider(this.authToken, this._items);
+
   List<ProductProvider> _items = [
     // ProductProvider(
     //   id: 'p1',
@@ -54,8 +59,8 @@ class ProductsProvider with ChangeNotifier {
   }
 
   Future<void> fetchAndSetProducts() async {
-    const url =
-        'https://fluttercourse-shopapp-ea455-default-rtdb.europe-west1.firebasedatabase.app/products.json';
+    final url =
+        'https://fluttercourse-shopapp-ea455-default-rtdb.europe-west1.firebasedatabase.app/products.json?auth=$authToken';
 
     try {
       final response = await http.get(url);
@@ -66,7 +71,7 @@ class ProductsProvider with ChangeNotifier {
       if (extractedData == null) {
         return;
       }
-      
+
       extractedData.forEach((productId, productData) {
         fetchedProducts.add(ProductProvider(
           id: productId,
@@ -145,7 +150,7 @@ class ProductsProvider with ChangeNotifier {
         'https://fluttercourse-shopapp-ea455-default-rtdb.europe-west1.firebasedatabase.app/products/$id.json';
 
     _items.removeAt(existingProductIndex);
-      notifyListeners();
+    notifyListeners();
 
     // try deleting and reinsert if deletion failed
     final response = await http.delete(url);
