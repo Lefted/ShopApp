@@ -12,6 +12,17 @@ class AuthProvider with ChangeNotifier {
   DateTime _expiryDate;
   String _userId;
 
+  bool get isAuthenticated {
+    return token != null;
+  }
+
+  String get token {
+    if (_expiryDate != null &&
+        _expiryDate.isAfter(DateTime.now()) &&
+        _token != null) return _token;
+    return null;
+  }
+
   Future<void> _authenticate(String email, String password, bool signUp) async {
     final url = signUp
         ? 'https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=$API_KEY'
@@ -29,6 +40,18 @@ class AuthProvider with ChangeNotifier {
       if (responseData['error'] != null) {
         throw HttpException(responseData['error']['message']);
       }
+
+      // set token
+      _token = responseData['idToken'];
+      _userId = responseData['localId'];
+      _expiryDate = DateTime.now().add(
+        Duration(
+          seconds: int.parse(
+            responseData['expiresIn'],
+          ),
+        ),
+      );
+      notifyListeners();
     } catch (error) {
       // errors
       throw error;
