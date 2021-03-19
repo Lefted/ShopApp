@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -11,6 +12,7 @@ class AuthProvider with ChangeNotifier {
   String _token;
   DateTime _expiryDate;
   String _userId;
+  Timer _authTimer;
 
   bool get isAuthenticated {
     return token != null;
@@ -55,6 +57,10 @@ class AuthProvider with ChangeNotifier {
           ),
         ),
       );
+
+      // start autoSignOutTimer
+      _autoSignOut();
+
       notifyListeners();
     } catch (error) {
       // errors
@@ -68,5 +74,26 @@ class AuthProvider with ChangeNotifier {
 
   Future<void> signIn(String email, String password) async {
     return _authenticate(email, password, false);
+  }
+
+  void signOut() {
+    _token = null;
+    _userId = null;
+    _expiryDate = null;
+
+    if (_authTimer != null) {
+      _authTimer.cancel();
+      _authTimer = null;
+    }
+    notifyListeners();
+  }
+
+  void _autoSignOut() {
+    if (_authTimer != null) {
+      _authTimer.cancel();
+    }
+
+    final timeLeft = _expiryDate.difference(DateTime.now()).inSeconds;
+    _authTimer = Timer(Duration(seconds: timeLeft), signOut);
   }
 }
