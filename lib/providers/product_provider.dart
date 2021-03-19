@@ -22,7 +22,7 @@ class ProductProvider with ChangeNotifier {
     this.isFavorite = false,
   });
 
-  Future<void> toggleFavoriteStatus() async {
+  Future<void> toggleFavoriteStatus(String token) async {
     // save old value
     final oldValue = isFavorite;
 
@@ -32,7 +32,7 @@ class ProductProvider with ChangeNotifier {
 
     // update product in database
     final url =
-        'https://fluttercourse-shopapp-ea455-default-rtdb.europe-west1.firebasedatabase.app/products/$id.json';
+        'https://fluttercourse-shopapp-ea455-default-rtdb.europe-west1.firebasedatabase.app/products/$id.json?auth=$token';
 
     final result = await http.patch(url,
         body: json.encode({

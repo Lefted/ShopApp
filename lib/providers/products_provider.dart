@@ -91,8 +91,8 @@ class ProductsProvider with ChangeNotifier {
   }
 
   Future<void> addProduct(ProductProvider product) async {
-    const url =
-        'https://fluttercourse-shopapp-ea455-default-rtdb.europe-west1.firebasedatabase.app/products.json';
+    final url =
+        'https://fluttercourse-shopapp-ea455-default-rtdb.europe-west1.firebasedatabase.app/products.json?auth=$authToken';
     final response = await http.post(
       url,
       body: json.encode({
@@ -125,7 +125,7 @@ class ProductsProvider with ChangeNotifier {
     if (prodIndex >= 0) {
       // update product in database
       final url =
-          'https://fluttercourse-shopapp-ea455-default-rtdb.europe-west1.firebasedatabase.app/products/$id.json';
+          'https://fluttercourse-shopapp-ea455-default-rtdb.europe-west1.firebasedatabase.app/products/$id.json?auth=$authToken';
 
       await http.patch(url,
           body: json.encode({
@@ -147,7 +147,7 @@ class ProductsProvider with ChangeNotifier {
 
     // delete product from database
     final url =
-        'https://fluttercourse-shopapp-ea455-default-rtdb.europe-west1.firebasedatabase.app/products/$id.json';
+        'https://fluttercourse-shopapp-ea455-default-rtdb.europe-west1.firebasedatabase.app/products/$id.json?auth=$authToken';
 
     _items.removeAt(existingProductIndex);
     notifyListeners();
