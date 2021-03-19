@@ -8,8 +8,9 @@ import 'product_provider.dart';
 
 class ProductsProvider with ChangeNotifier {
   final String authToken;
+  final String userId;
 
-  ProductsProvider(this.authToken, this._items);
+  ProductsProvider(this.authToken, this.userId, this._items);
 
   List<ProductProvider> _items = [
     // ProductProvider(
@@ -59,7 +60,7 @@ class ProductsProvider with ChangeNotifier {
   }
 
   Future<void> fetchAndSetProducts() async {
-    final url =
+    var url =
         'https://fluttercourse-shopapp-ea455-default-rtdb.europe-west1.firebasedatabase.app/products.json?auth=$authToken';
 
     try {
@@ -72,6 +73,14 @@ class ProductsProvider with ChangeNotifier {
         return;
       }
 
+      url =
+          'https://fluttercourse-shopapp-ea455-default-rtdb.europe-west1.firebasedatabase.app/userFavorites/$userId.json?auth=$authToken';
+
+      final favoriteResponse = await http.get(url);
+      final favoriteData = json.decode(favoriteResponse.body);
+
+
+
       extractedData.forEach((productId, productData) {
         fetchedProducts.add(ProductProvider(
           id: productId,
@@ -79,7 +88,7 @@ class ProductsProvider with ChangeNotifier {
           description: productData['description'],
           price: productData['price'],
           imageUrl: productData['imageUrl'],
-          isFavorite: productData['isFavorite'],
+          isFavorite: favoriteData == null ? false : favoriteData[productId] ?? false 
         ));
       });
 
@@ -100,7 +109,6 @@ class ProductsProvider with ChangeNotifier {
         'description': product.description,
         'imageUrl': product.imageUrl,
         'price': product.price,
-        'isFavorite': product.isFavorite,
       }),
     );
 
