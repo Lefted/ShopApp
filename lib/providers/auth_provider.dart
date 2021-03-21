@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/http_exception.dart';
 
@@ -60,8 +61,16 @@ class AuthProvider with ChangeNotifier {
 
       // start autoSignOutTimer
       _autoSignOut();
-
       notifyListeners();
+
+      // store token and co on device
+      final prefs = await SharedPreferences.getInstance();
+      final userData = json.encode({
+        'token': _token,
+        'userId': _userId,
+        'expiryDate': _expiryDate.toIso8601String(),
+      });
+      prefs.setString('userData', userData);
     } catch (error) {
       // errors
       throw error;
@@ -76,7 +85,7 @@ class AuthProvider with ChangeNotifier {
     return _authenticate(email, password, false);
   }
 
-  void signOut() {
+  Future<void> signOut() async{
     _token = null;
     _userId = null;
     _expiryDate = null;
@@ -85,6 +94,11 @@ class AuthProvider with ChangeNotifier {
       _authTimer.cancel();
       _authTimer = null;
     }
+
+    // clear data from storage
+    final prefs = await SharedPreferences.getInstance();
+    prefs.remove('userData');
+    
     notifyListeners();
   }
 
@@ -95,5 +109,25 @@ class AuthProvider with ChangeNotifier {
 
     final timeLeft = _expiryDate.difference(DateTime.now()).inSeconds;
     _authTimer = Timer(Duration(seconds: timeLeft), signOut);
+  }
+
+  Future<bool> tryAutoLogin() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (!prefs.containsKey('userData')) return false;
+
+    final extractedUserData =
+        json.decode(prefs.getString('userData')) as Map<String, dynamic>;
+    final expiryDate = DateTime.parse(extractedUserData['expiryDate']);
+
+    if (expiryDate.isBefore(DateTime.now())) return false;
+
+    // valid date
+    _token = extractedUserData['token'];
+    _userId = extractedUserData['userId'];
+    _expiryDate = expiryDate;
+    notifyListeners();
+    _autoSignOut();
+
+    return true;
   }
 }
