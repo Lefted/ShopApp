@@ -24,8 +24,9 @@ class ProductItem extends StatelessWidget {
               arguments: product.id,
             );
           },
-          child: Image.network(
-            product.imageUrl,
+          child: FadeInImage(
+            placeholder: AssetImage('assets/images/product-placeholder.png'),
+            image: NetworkImage(product.imageUrl),
             fit: BoxFit.cover,
           ),
         ),
@@ -39,7 +40,8 @@ class ProductItem extends StatelessWidget {
             color: Theme.of(context).accentColor,
             onPressed: () async {
               try {
-                await product.toggleFavoriteStatus(authData.token, authData.userId);
+                await product.toggleFavoriteStatus(
+                    authData.token, authData.userId);
               } catch (error) {
                 scaffold.showSnackBar(SnackBar(
                     content: Text(
